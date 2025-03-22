@@ -6,6 +6,13 @@ def ensure_output_dir(output_dir):
     """Ensure output directory exists"""
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
+def get_processed_files(output_dir):
+    """Get list of already processed files (without extension)"""
+    if not os.path.exists(output_dir):
+        return set()
+    # Get all files and remove extensions
+    return {os.path.splitext(f)[0] for f in os.listdir(output_dir)}
+
 def process_images(input_dir, output_dir):
     """Process all images in input_dir and save to output_dir"""
     # Create output directory if not exists
@@ -15,12 +22,22 @@ def process_images(input_dir, output_dir):
     image_extensions = ('.png', '.jpg', '.jpeg', '.PNG', '.JPG', '.JPEG')
     image_files = [f for f in os.listdir(input_dir) if f.endswith(image_extensions)]
     
+    # Get list of already processed files (without extensions)
+    processed_files = get_processed_files(output_dir)
+    
     # Process each image
     for img_file in image_files:
+        # Get filename without extension
+        base_name = os.path.splitext(img_file)[0]
+        
+        # Check if file was already processed
+        if base_name in processed_files:
+            print(f"Skipping {img_file} (already processed)")
+            continue
+            
         input_path = os.path.join(input_dir, img_file)
         print(f"Processing: {input_path}")
         
-        # Run inference command
         cmd = [
             "python", 
             "src/inference_unpaired.py",
